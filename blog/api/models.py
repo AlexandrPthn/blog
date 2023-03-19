@@ -24,14 +24,13 @@ class Blog(models.Model):
     authors = models.ManyToManyField(
         User,
         verbose_name='Автор публикации',
-        through='AuthorPost',
-        related_name='blogs'
+        through='AuthorsPost',
+        related_name="authorsposts"
         )
     owner = models.ForeignKey(
         User,
         verbose_name="Автор блога",
         on_delete=models.CASCADE,
-        related_name="blogs"
         )
 
     class Meta:
@@ -43,7 +42,7 @@ class Blog(models.Model):
         return self.title
 
 
-class AuthorPost(models.Model):
+class AuthorsPost(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name='Автор публикации',
@@ -106,11 +105,11 @@ class Post(models.Model):
     created_at = models.DateTimeField(
         verbose_name="Дата публикации"
         )
-    likes = models.DateTimeField(
+    likes = models.PositiveIntegerField(
         verbose_name="Счётчик оценок",
         default=0
         )
-    views = models.DateTimeField(
+    views = models.PositiveIntegerField(
         verbose_name="Счётчик просмотров",
         default=0
         )
