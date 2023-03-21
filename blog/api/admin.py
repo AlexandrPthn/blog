@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AuthorsPost, Blog, Comment, Follow, Post, Tag, User
+from .models import Blog, Comment, Follow, Post, User
 
 
 @admin.register(User)
@@ -19,19 +19,6 @@ class BlogAdmin(admin.ModelAdmin):
     search_fields = ('owner',)
     list_filter = ('updated_at',)
     empty_value_display = '-пусто-'
-
-
-@admin.register(AuthorsPost)
-class AuthorsPostAdmin(admin.ModelAdmin):
-    list_display = ('user', 'blog')
-    search_fields = ('user',)
-
-
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'color', 'slug')
-    search_fields = ('name',)
-    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Post)

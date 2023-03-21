@@ -1,7 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 
-from .models import AuthorsPost, Blog, Post, Tag, User
+from .models import Blog, Comment, Post, User
 
 
 class CreateUserSerializers(serializers.ModelSerializer):
@@ -39,17 +39,10 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class TagSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Tag
-        fields = ('id', 'name', 'color', 'slug',)
-
-
 class PostCreateSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
+        queryset=Blog.objects.all(),
         many=True
     )
 
@@ -69,20 +62,21 @@ class PostCreateSerializer(serializers.ModelSerializer):
         tags = data
         if not tags:
             raise serializers.ValidationError(
-                'В рецепте должен быть хотя бы один тег'
-            )
+                {'errors': 'В посте должен быть хотя бы один тэг'}
+                )
         validated_tags = []
         for tag in tags:
             if tag in validated_tags:
-                raise serializers.ValidationError({
-                    'tags': 'Теги должны быть уникальными!'
-                })
+                raise serializers.ValidationError(
+                    {'errors': 'Теги должны быть уникальными!'}
+                    )
             validated_tags.append(tag)
         return data
-    
+
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        post = Post.objects.create(**validated_data)
+        post = Post.objects.create(author=self.context['request'].user,
+                                   **validated_data)
         post.tags.set(tags)
         return post
 
@@ -97,7 +91,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
 class PostReadSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -111,17 +105,19 @@ class PostReadSerializer(serializers.ModelSerializer):
                   'tags',
                   )
 
-
-class AuthorsPostSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = AuthorsPost
-        fields = ('id',)
+    def get_tags(self, obj):
+        post = obj
+        return post.tags.values(
+            'id',
+            'title',
+        )
 
 
 class BlogCreateSerializer(serializers.ModelSerializer):
-    authors = AuthorsPostSerializer(many=True)
+    authors = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        many=True
+    )
     owner = UserSerializer(read_only=True)
 
     class Meta:
@@ -140,40 +136,28 @@ class BlogCreateSerializer(serializers.ModelSerializer):
         if not authors:
             raise serializers.ValidationError(
                 {'errors': 'Добавьте хотя бы одного автора в блог'}
-            )
+                )
         validated_authors = []
         for author in authors:
             if author in validated_authors:
                 raise serializers.ValidationError(
                     {'errors': 'Авторы должны быть уникальными.'}
-                )
+                    )
             validated_authors.append(author)
         return data
-
-    def authors_create(self, authors, blog):
-        authors_list = [
-            AuthorsPost(
-                user=User.objects.get(id=author['id']),
-                blog=blog
-            ) for author in authors
-        ]
-        AuthorsPost.objects.bulk_create(authors_list)
 
     def create(self, validated_data):
         authors = validated_data.pop('authors')
         blog = Blog.objects.create(owner=self.context['request'].user,
                                    **validated_data)
-        self.authors_create(
-            authors=authors,
-            blog=blog
-        )
+        blog.authors.set(authors)
         return blog
 
     def update(self, instance, validated_data):
         authors = validated_data.pop('authors')
         instance = super().update(instance, validated_data)
         instance.authors.clear()
-        self.authors_create(authors, instance)
+        instance.authors.set(authors)
         instance.save()
         return instance
 
@@ -200,3 +184,20 @@ class BlogReadSerializer(serializers.ModelSerializer):
             'email',
             'username',
         )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+        )
+
+    class Meta:
+        model = Comment
+        fields = ('id',
+                  'post',
+                  'author',
+                  'body',
+                  'created_at',
+                  )
+        read_only_fields = ('post',)
