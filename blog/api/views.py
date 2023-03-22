@@ -1,16 +1,27 @@
 import datetime
 
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
-from .models import Blog, Post, User
+from .models import Blog, Follow, Post, User
 from .serializers import (BlogCreateSerializer, BlogReadSerializer,
-                          CommentSerializer, PostSerializer, UserSerializer)
+                          CommentSerializer, FollowSerializer, PostSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    
+    @action(detail=False)
+    def subscriptions(self, request):
+        queryset = Follow.objects.filter(user=request.user)
+        serializer = FollowSerializer(queryset, 
+                                      many=True,
+                                      context={'request': request})
+        return Response(serializer.data)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -46,7 +57,34 @@ class PostViewSet(viewsets.ModelViewSet):
 class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.all()
     serializer_class = BlogCreateSerializer
+    additional_serializer = FollowSerializer
 
+    @action(methods=['POST', 'DELETE'], detail=True)
+    def subscribe(self, request, **kwargs):
+        user = request.user
+        blog = get_object_or_404(Blog, id=kwargs.get('id'))
+        if request.method == 'POST':
+            if Follow.objects.filter(user=user, blog=blog).exists():
+                return Response(
+                    {'errors': 'Вы уже подписаны на данный блог'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            subscribe = Follow.objects.create(user=user, blog=blog)
+            serializer = self.additional_serializer(
+                subscribe, context={'request': request}
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            follow = Follow.objects.filter(user=user, blog=blog)
+            if follow.exists():
+                follow.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'errors': 'У вас нет подписки на данный блог'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PATCH', 'PUT']:
             return BlogCreateSerializer
