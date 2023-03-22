@@ -39,12 +39,13 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class PostCreateSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Blog.objects.all(),
         many=True
     )
+    created_at = serializers.DateTimeField(default="1000-01-01T00:00:00Z")
 
     class Meta:
         model = Post
@@ -52,6 +53,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
                   'author',
                   'title',
                   'body',
+                  'is_published',
                   'created_at',
                   'likes',
                   'views',
@@ -72,45 +74,6 @@ class PostCreateSerializer(serializers.ModelSerializer):
                     )
             validated_tags.append(tag)
         return data
-
-    def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        post = Post.objects.create(author=self.context['request'].user,
-                                   **validated_data)
-        post.tags.set(tags)
-        return post
-
-    def update(self, instance, validated_data):
-        tags = validated_data.pop('tags')
-        instance = super().update(instance, validated_data)
-        instance.tags.clear()
-        instance.tags.set(tags)
-        instance.save()
-        return instance
-
-
-class PostReadSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
-    tags = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Post
-        fields = ('id',
-                  'author',
-                  'title',
-                  'body',
-                  'created_at',
-                  'likes',
-                  'views',
-                  'tags',
-                  )
-
-    def get_tags(self, obj):
-        post = obj
-        return post.tags.values(
-            'id',
-            'title',
-        )
 
 
 class BlogCreateSerializer(serializers.ModelSerializer):

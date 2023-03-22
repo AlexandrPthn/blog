@@ -1,10 +1,11 @@
+import datetime
+
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 
 from .models import Blog, Post, User
 from .serializers import (BlogCreateSerializer, BlogReadSerializer,
-                          CommentSerializer, PostCreateSerializer,
-                          PostReadSerializer, UserSerializer)
+                          CommentSerializer, PostSerializer, UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -14,12 +15,32 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
-    serializer_class = PostCreateSerializer
+    serializer_class = PostSerializer
 
-    def get_serializer_class(self):
-        if self.request.method in ['POST', 'PATCH', 'PUT']:
-            return PostCreateSerializer
-        return PostReadSerializer
+    def update_blog_update_at(self, ids, update_at):
+        for id in ids:
+            blog = Blog.objects.filter(id=id)
+            blog.update(updated_at=update_at)
+
+    def perform_create(self, serializer):
+        is_published = self.request.data.get('is_published')
+        if is_published:
+            created_at = datetime.datetime.now()
+            tags = self.request.data.get('tags')
+            self.update_blog_update_at(tags, created_at)
+        else:
+            created_at = "1000-01-01T00:00:00Z"
+        serializer.save(author=self.request.user, created_at=created_at)
+
+    def perform_update(self, serializer):
+        is_published = self.request.data.get('is_published')
+        if is_published:
+            serializer.instance.created_at = datetime.datetime.now()
+            tags = self.request.data.get('tags')
+            self.update_blog_update_at(tags, serializer.instance.created_at)
+        else:
+            serializer.instance.created_at = "1000-01-01T00:00:00Z"
+        serializer.save()
 
 
 class BlogViewSet(viewsets.ModelViewSet):
