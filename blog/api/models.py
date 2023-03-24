@@ -106,7 +106,7 @@ class Post(models.Model):
     )
     created_at = models.DateTimeField(
         verbose_name="Дата публикации",
-        default="1000-01-01T00:00:00Z"
+        null=True
     )
     likes = models.PositiveIntegerField(
         verbose_name="Счётчик оценок",

@@ -45,7 +45,7 @@ class PostSerializer(serializers.ModelSerializer):
         queryset=Blog.objects.all(),
         many=True
     )
-    created_at = serializers.DateTimeField(default="1000-01-01T00:00:00Z")
+    created_at = serializers.DateTimeField(default=None)
 
     class Meta:
         model = Post
