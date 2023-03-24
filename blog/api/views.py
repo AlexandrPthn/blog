@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 
 from .filters import BlogFilter, PostFilter
@@ -35,9 +35,10 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = LimitPagePagination
-    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_class = PostFilter
     search_fields = ('title', 'author__username')
+    ordering_fields = ('title', 'created_at', 'likes') 
 
     def retrieve(self, request, pk=None):
         if pk is not None:
@@ -93,9 +94,10 @@ class BlogViewSet(viewsets.ModelViewSet):
     serializer_class = BlogCreateSerializer
     additional_serializer = FollowSerializer
     pagination_class = LimitPagePagination
-    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_class = BlogFilter
     search_fields = ('title', 'owner__username')
+    ordering_fields = ('title', 'created_at', 'likes') 
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def subscribe(self, request, **kwargs):
