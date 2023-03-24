@@ -2,10 +2,12 @@ import datetime
 
 from django.db.models import F
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .filters import BlogFilter, PostFilter
 from .models import Blog, Follow, Post, User
 from .pagination import LimitPagePagination
 from .serializers import (BlogCreateSerializer, BlogReadSerializer,
@@ -32,6 +34,8 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = LimitPagePagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = PostFilter
 
     def retrieve(self, request, pk=None):
         if pk is not None:
@@ -87,6 +91,8 @@ class BlogViewSet(viewsets.ModelViewSet):
     serializer_class = BlogCreateSerializer
     additional_serializer = FollowSerializer
     pagination_class = LimitPagePagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = BlogFilter
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def subscribe(self, request, **kwargs):
