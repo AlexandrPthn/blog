@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Blog, Follow, Post, User
+from .pagination import LimitPagePagination
 from .serializers import (BlogCreateSerializer, BlogReadSerializer,
                           CommentSerializer, FollowSerializer, PostSerializer,
                           UserSerializer)
@@ -15,19 +16,22 @@ from .serializers import (BlogCreateSerializer, BlogReadSerializer,
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    pagination_class = LimitPagePagination
 
     @action(detail=False)
     def subscriptions(self, request):
         queryset = Follow.objects.filter(user=request.user)
-        serializer = FollowSerializer(queryset,
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(pages,
                                       many=True,
                                       context={'request': request})
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    pagination_class = LimitPagePagination
 
     def retrieve(self, request, pk=None):
         if pk is not None:
@@ -82,6 +86,7 @@ class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.all()
     serializer_class = BlogCreateSerializer
     additional_serializer = FollowSerializer
+    pagination_class = LimitPagePagination
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def subscribe(self, request, **kwargs):
