@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
@@ -51,21 +52,37 @@ class PostViewSet(viewsets.ModelViewSet):
         for id in ids:
             Blog.objects.filter(id=id).update(updated_at=update_at)
 
+    def check_autors_blog(self, blog, user):
+        if (Blog.objects.filter(id=blog, authors=user).exists() or
+                Blog.objects.filter(id=blog, owner=user).exists()):
+            return True
+        return False
+
     def perform_create(self, serializer):
+        tags = self.request.data.get('tags')
+        author_post = self.request.user
+        for tag in tags:
+            if not self.check_autors_blog(tag, author_post):
+                raise APIException("Errors: 'Проверьте допуск к блокам!")
         is_published = self.request.data.get('is_published')
         if is_published:
             created_at = datetime.datetime.now()
-            tags = self.request.data.get('tags')
             self.update_blog_update_at(tags, created_at)
         else:
             created_at = None
-        serializer.save(author=self.request.user, created_at=created_at)
+        serializer.save(author=author_post, created_at=created_at)
 
     def perform_update(self, serializer):
+        tags = self.request.data.get('tags')
+        author_post = serializer.instance.author
+        if author_post != self.request.user:
+            raise APIException("Errors: 'Вы не являетесь автором поста!")
+        for tag in tags:
+            if not self.check_autors_blog(tag, author_post):
+                raise APIException("Errors: 'Проверьте допуск к блокам!")
         is_published = self.request.data.get('is_published')
         if is_published:
             serializer.instance.created_at = datetime.datetime.now()
-            tags = self.request.data.get('tags')
             self.update_blog_update_at(tags, serializer.instance.created_at)
         else:
             serializer.instance.created_at = None
@@ -86,7 +103,8 @@ class PostViewSet(viewsets.ModelViewSet):
             post = self.get_object()
             serializer = self.serializer_class(post)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return None
+        return Response('Разрешены только POST и DELETE запросы',
+                        status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class BlogViewSet(viewsets.ModelViewSet):

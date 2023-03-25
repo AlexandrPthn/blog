@@ -4,7 +4,7 @@ from rest_framework import serializers
 from .models import Blog, Comment, Follow, Post, User
 
 
-class CreateUserSerializers(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
         required=True,
@@ -25,22 +25,14 @@ class CreateUserSerializers(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['password'] = make_password(
             validated_data.get('password'))
-        return super(CreateUserSerializers, self).create(validated_data)
-
-
-class UserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'email',
-            'username',
-        )
+        return super(UserSerializer, self).create(validated_data)
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+        )
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Blog.objects.all(),
         many=True
@@ -127,7 +119,10 @@ class BlogCreateSerializer(serializers.ModelSerializer):
 
 class BlogReadSerializer(serializers.ModelSerializer):
     authors = serializers.SerializerMethodField()
-    owner = UserSerializer(read_only=True)
+    owner = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
 
     class Meta:
         model = Blog
