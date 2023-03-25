@@ -22,13 +22,22 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = LimitPagePagination
 
-    @action(detail=False)
+    @action(methods=['GET'], detail=False)
     def subscriptions(self, request):
         queryset = Follow.objects.filter(user=request.user)
         pages = self.paginate_queryset(queryset)
         serializer = FollowSerializer(pages,
                                       many=True,
                                       context={'request': request})
+        return self.get_paginated_response(serializer.data)
+
+    @action(methods=['GET'], detail=False)
+    def posts(self, request):
+        queryset = Post.objects.filter(author=request.user)
+        pages = self.paginate_queryset(queryset)
+        serializer = PostSerializer(pages,
+                                    many=True,
+                                    context={'request': request})
         return self.get_paginated_response(serializer.data)
 
 
@@ -111,11 +120,21 @@ class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.all()
     serializer_class = BlogCreateSerializer
     additional_serializer = FollowSerializer
+    post_serializer = PostSerializer
     pagination_class = LimitPagePagination
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_class = BlogFilter
     search_fields = ('title', 'owner__username')
     ordering_fields = ('title', 'updated_at', 'likes')
+
+    @action(methods=['GET'], detail=True)
+    def posts(self, request, **kwargs):
+        queryset = Post.objects.filter(tags=kwargs.get('pk'))
+        pages = self.paginate_queryset(queryset)
+        serializer = PostSerializer(pages,
+                                    many=True,
+                                    context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def subscribe(self, request, **kwargs):
