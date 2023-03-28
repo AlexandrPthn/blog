@@ -116,7 +116,6 @@ class PostViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-
 class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.all()
     serializer_class = BlogCreateSerializer
@@ -127,7 +126,7 @@ class BlogViewSet(viewsets.ModelViewSet):
     filterset_class = BlogFilter
     search_fields = ('title', 'owner__username')
     ordering_fields = ('title', 'updated_at', 'likes')
-    
+
     @action(methods=['GET'], detail=True)
     def posts(self, request, **kwargs):
         queryset = Post.objects.filter(tags=kwargs.get('pk'))
