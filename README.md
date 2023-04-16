@@ -17,16 +17,11 @@
 [![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat&logo=Yandex.Cloud&logoColor=56C0C0&color=008080)](https://cloud.yandex.ru/)
 
 ### Yandex.Cloud
-Проект доступен по адресу:
-Администратор:
-```
-http://blogmediasoft.ddns.net/admin/
-```
-Документация:
-```
-http://blogmediasoft.ddns.net/swagger/
-http://blogmediasoft.ddns.net/redoc/
-```
+Ссылки на проект:
+[Администратор](http://blogmediasoft.ddns.net/admin/)
+[Swagger](http://blogmediasoft.ddns.net/swagger/)
+[Redoc](http://blogmediasoft.ddns.net/redoc/)
+
 
 ### Подготовка запуска локально
 Для запуска проекта необходимо чтоб на компьютере был установлен Docker Desktop
