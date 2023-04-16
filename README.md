@@ -1,7 +1,6 @@
 ### **Тестовое задание**
 ### Описание
-Проект Blog - cоциальная сеть ведения постов. Блог с возможностью публикации постов, подпиской на блог авторов, возможностью оставлять комментарии на посты.
-
+Тестовое задание находится в корне: Тестовое задание Python (hard).pdf
 
 ### Стек
 ![Workflow](https://github.com/AlexandrPthn/foodgram-project-react/actions/workflows/main.yml/badge.svg?event=push)
@@ -17,8 +16,21 @@
 [![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat&logo=GitHub%20actions&logoColor=56C0C0&color=008080)](https://github.com/features/actions)
 [![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat&logo=Yandex.Cloud&logoColor=56C0C0&color=008080)](https://cloud.yandex.ru/)
 
+### Yandex.Cloud
+Проект доступен по адресу:
+Администратор:
+```
+http://blogmediasoft.ddns.net/admin/
+```
+Документация:
+```
+http://blogmediasoft.ddns.net/swagger/
+http://blogmediasoft.ddns.net/redoc/
+```
+
 ### Подготовка запуска локально
 Для запуска проекта необходимо чтоб на компьютере был установлен Docker Desktop
+
 Клонировать репозиторий:
 ```
 git clone https://github.com/AlexandrPthn/blog.git
@@ -42,10 +54,14 @@ docker compose exec backend python manage.py collectstatic --noinput
 ```
 
 ### API проекта
-Примеры запросов можно посмотреть после запуска проекта по ссылкам:
+Примеры запросов можно посмотреть после локального запуска проекта по ссылкам:
+```
 http://127.0.0.1/swagger/
+```
 либо
+```
 http://127.0.0.1/redoc/
+```
 
 ### Автор
 Кокушин Александр
