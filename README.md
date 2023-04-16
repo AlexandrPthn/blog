@@ -18,7 +18,7 @@
 
 ### Yandex.Cloud
 Ссылки на проект:
-[Администратор](http://blogmediasoft.ddns.net/admin/)
+[Администратор](http://51.250.85.165/admin/)
 [Swagger](http://blogmediasoft.ddns.net/swagger/)
 [Redoc](http://blogmediasoft.ddns.net/redoc/)
 
