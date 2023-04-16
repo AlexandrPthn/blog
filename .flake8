@@ -2,3 +2,4 @@
 exclude =
     blog/blog/settings.py
     migrations
+    README.md
