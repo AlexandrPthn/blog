@@ -50,6 +50,11 @@ class PostViewSet(viewsets.ModelViewSet):
     search_fields = ('title', 'author__username')
     ordering_fields = ('title', 'created_at', 'likes')
 
+    def list(self, request):
+        queryset = Post.objects.filter(is_published=True)
+        serializer = PostSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     def retrieve(self, request, pk=None):
         if pk is not None:
             Post.objects.filter(id=pk).update(views=F("views") + 1)
@@ -79,7 +84,8 @@ class PostViewSet(viewsets.ModelViewSet):
             self.update_blog_update_at(tags, created_at)
         else:
             created_at = None
-        serializer.save(author=author_post, created_at=created_at)
+        if serializer.is_valid():
+            serializer.save(author=author_post, created_at=created_at)
 
     def perform_update(self, serializer):
         tags = self.request.data.get('tags')
@@ -95,7 +101,8 @@ class PostViewSet(viewsets.ModelViewSet):
             self.update_blog_update_at(tags, serializer.instance.created_at)
         else:
             serializer.instance.created_at = None
-        serializer.save()
+        if serializer.is_valid():
+            serializer.save()
 
     @action(detail=True,
             methods=['POST', 'DELETE'])
@@ -163,9 +170,16 @@ class BlogViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
-        if self.request.method in ['POST', 'PATCH', 'PUT']:
-            return BlogCreateSerializer
-        return BlogReadSerializer
+        if self.request.method in ['GET']:
+            return BlogReadSerializer
+        return BlogCreateSerializer
+
+    def perform_update(self, serializer):
+        author_post = serializer.instance.owner
+        if author_post != self.request.user:
+            raise APIException("Errors: 'Вы не являетесь автором блога!")
+        if serializer.is_valid():
+            serializer.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -177,4 +191,5 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        serializer.save(author=self.request.user, post=post)
+        if serializer.is_valid():
+            serializer.save(author=self.request.user, post=post)

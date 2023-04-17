@@ -108,14 +108,6 @@ class BlogCreateSerializer(serializers.ModelSerializer):
         blog.authors.set(authors)
         return blog
 
-    def update(self, instance, validated_data):
-        authors = validated_data.pop('authors')
-        instance = super().update(instance, validated_data)
-        instance.authors.clear()
-        instance.authors.set(authors)
-        instance.save()
-        return instance
-
 
 class BlogReadSerializer(serializers.ModelSerializer):
     authors = serializers.SerializerMethodField()
