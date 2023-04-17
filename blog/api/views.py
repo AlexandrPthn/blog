@@ -52,8 +52,12 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         queryset = Post.objects.filter(is_published=True)
-        serializer = PostSerializer(queryset, many=True)
-        return Response(serializer.data)
+        pages = self.paginate_queryset(queryset)
+        serializer = PostSerializer(pages,
+                                    many=True,
+                                    context={'request': request})
+        return self.get_paginated_response(serializer.data)
+    
 
     def retrieve(self, request, pk=None):
         if pk is not None:
