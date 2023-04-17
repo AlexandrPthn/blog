@@ -11,7 +11,7 @@ router.register('blogs', BlogViewSet)
 router.register('users', UserViewSet)
 router.register(r'posts/(?P<post_id>\d+)/comments', CommentViewSet,
                 basename='comments')
-
+ 
 urlpatterns = [
     path('', include(router.urls)),
     path(r'auth/', include('djoser.urls.authtoken')),

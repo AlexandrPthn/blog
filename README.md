@@ -17,10 +17,10 @@
 [![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat&logo=Yandex.Cloud&logoColor=56C0C0&color=008080)](https://cloud.yandex.ru/)
 
 ### Yandex.Cloud
-Ссылки на проект:
+БД с тестовыми данными находится по адресу 51.250.85.165. Ссылки на проект c данными:
 [Администратор](http://51.250.85.165/admin/)
-[Swagger](http://blogmediasoft.ddns.net/swagger/)
-[Redoc](http://blogmediasoft.ddns.net/redoc/)
+[Swagger](http://51.250.85.165/swagger/)
+[Redoc](http://51.250.85.165/redoc/)
 
 
 ### Подготовка запуска локально
