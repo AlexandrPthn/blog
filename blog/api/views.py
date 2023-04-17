@@ -57,7 +57,6 @@ class PostViewSet(viewsets.ModelViewSet):
                                     many=True,
                                     context={'request': request})
         return self.get_paginated_response(serializer.data)
-    
 
     def retrieve(self, request, pk=None):
         if pk is not None:
